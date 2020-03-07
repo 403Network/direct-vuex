@@ -1,106 +1,163 @@
-import Vuex, { ActionContext, Store } from "vuex"
-import { ActionsImpl, GettersImpl, ModuleOptions, ModulesImpl, MutationsImpl, StateOf, StoreOptions, StoreOrModuleOptions, WithOptionalState } from "../types"
-import { CreatedStore, ToDirectStore, VuexStore } from "../types/direct-types"
+import Vuex, { ActionContext, Store } from "vuex";
+import {
+  ActionsImpl,
+  GettersImpl,
+  ModuleOptions,
+  ModulesImpl,
+  MutationsImpl,
+  StateOf,
+  StoreOptions,
+  StoreOrModuleOptions,
+  WithOptionalState
+} from "../types";
+import { CreatedStore, ToDirectStore, VuexStore } from "../types/direct-types";
 
-export function createDirectStore<
-  O extends WithOptionalState,
-  S = StateOf<O>
->(options: O & StoreOptions<S>): CreatedStore<O> {
-  const original = new Vuex.Store(options as any) as VuexStore<O>
+export function createDirectStore<O extends WithOptionalState, S = StateOf<O>>(
+  options: O & StoreOptions<S>,
+  callback: (vuex: any) => any
+): CreatedStore<O> {
+  callback(Vuex);
+  const original = new Vuex.Store(options as any) as VuexStore<O>;
 
   const store: ToDirectStore<O> = {
     get state() {
-      return original.state as any
+      return original.state as any;
     },
     getters: toDirectGetters(options, original.getters),
     commit: toDirectCommit(options, original.commit),
     dispatch: toDirectDispatch(options, original.dispatch),
     original
-  }
+  };
 
-  original.direct = store
+  original.direct = store;
 
   return {
     store,
-    rootGetterContext:
-      ([state, getters]: [any, any]) => getModuleGetterContext([state, getters, state, getters], options, options),
-    moduleGetterContext:
-      (args: [any, any, any, any], moduleOptions: any) =>
-        getModuleGetterContext(args, moduleOptions, options),
-    rootActionContext: (originalContext: any) => getModuleActionContext(originalContext, options, options),
-    moduleActionContext:
-      (originalContext: any, moduleOptions: any) => getModuleActionContext(originalContext, moduleOptions, options),
-  }
+    rootGetterContext: ([state, getters]: [any, any]) =>
+      getModuleGetterContext(
+        [state, getters, state, getters],
+        options,
+        options
+      ),
+    moduleGetterContext: (args: [any, any, any, any], moduleOptions: any) =>
+      getModuleGetterContext(args, moduleOptions, options),
+    rootActionContext: (originalContext: any) =>
+      getModuleActionContext(originalContext, options, options),
+    moduleActionContext: (originalContext: any, moduleOptions: any) =>
+      getModuleActionContext(originalContext, moduleOptions, options)
+  };
 }
 
 export function localGetterContext<O extends StoreOrModuleOptions>(
-  [state, getters]: [any, any, ...any[]], options: O
+  [state, getters]: [any, any, ...any[]],
+  options: O
 ): any {
-  return getModuleGetterContext([state, getters, undefined, undefined], options)
+  return getModuleGetterContext(
+    [state, getters, undefined, undefined],
+    options
+  );
 }
 
 export function localActionContext<O extends StoreOrModuleOptions>(
   originalContext: ActionContext<any, any>,
   options: O
 ): any {
-  return getModuleActionContext(originalContext, options)
+  return getModuleActionContext(originalContext, options);
 }
 
-export function defineModule<
-  O extends WithOptionalState,
-  S = StateOf<O>
->(options: O & ModuleOptions<S>): O {
-  return options
+export function defineModule<O extends WithOptionalState, S = StateOf<O>>(
+  options: O & ModuleOptions<S>
+): O {
+  return options;
 }
 
-export function defineModules<S>(): (<T>(modules: T & ModulesImpl<S>) => T) {
-  return modules => modules
+export function defineModules<S>(): <T>(modules: T & ModulesImpl<S>) => T {
+  return modules => modules;
 }
 
-export function defineGetters<S>(): (<T>(getters: T & GettersImpl<S>) => T) {
-  return getters => getters
+export function defineGetters<S>(): <T>(getters: T & GettersImpl<S>) => T {
+  return getters => getters;
 }
 
-export function defineMutations<S>(): (<T>(mutations: T & MutationsImpl<S>) => T) {
-  return mutations => mutations
+export function defineMutations<S>(): <T>(
+  mutations: T & MutationsImpl<S>
+) => T {
+  return mutations => mutations;
 }
 
 export function defineActions<T>(actions: T & ActionsImpl): T {
-  return actions
+  return actions;
 }
 
-export const createModule = obsolete(defineModule, "createModule", "defineModule")
-export const createModules = obsolete(defineModules, "createModules", "defineModules")
-export const createGetters = obsolete(defineGetters, "createGetters", "defineGetters")
-export const createMutations = obsolete(defineMutations, "createMutations", "defineMutations")
-export const createActions = obsolete(defineActions, "createActions", "defineActions")
+export const createModule = obsolete(
+  defineModule,
+  "createModule",
+  "defineModule"
+);
+export const createModules = obsolete(
+  defineModules,
+  "createModules",
+  "defineModules"
+);
+export const createGetters = obsolete(
+  defineGetters,
+  "createGetters",
+  "defineGetters"
+);
+export const createMutations = obsolete(
+  defineMutations,
+  "createMutations",
+  "defineMutations"
+);
+export const createActions = obsolete(
+  defineActions,
+  "createActions",
+  "defineActions"
+);
 
-function obsolete<T extends (...args: any[]) => any>(fn: T, oldName: string, newName: string): T {
+function obsolete<T extends (...args: any[]) => any>(
+  fn: T,
+  oldName: string,
+  newName: string
+): T {
   return ((...args) => {
     // tslint:disable-next-line:no-console
-    console.warn(`Function '${oldName}' is obsolete, please use '${newName}'.`)
-    return fn(...args)
-  }) as T
+    console.warn(`Function '${oldName}' is obsolete, please use '${newName}'.`);
+    return fn(...args);
+  }) as T;
 }
 
 export default {
-  createDirectStore, defineModule, defineModules, defineGetters, defineMutations, defineActions,
-  localGetterContext, localActionContext,
-  createModule, createModules, createGetters, createMutations, createActions
-}
+  createDirectStore,
+  defineModule,
+  defineModules,
+  defineGetters,
+  defineMutations,
+  defineActions,
+  localGetterContext,
+  localActionContext,
+  createModule,
+  createModules,
+  createGetters,
+  createMutations,
+  createActions
+};
 
 // Getters
 
-const gettersCache = new WeakMap<Store<any>["getters"], any>()
+const gettersCache = new WeakMap<Store<any>["getters"], any>();
 
-function toDirectGetters(options: StoreOrModuleOptions, originalGetters: Store<any>["getters"]) {
-  let getters = gettersCache.get(originalGetters)
+function toDirectGetters(
+  options: StoreOrModuleOptions,
+  originalGetters: Store<any>["getters"]
+) {
+  let getters = gettersCache.get(originalGetters);
   // console.log(">> to-getters", getters ? "FROM_CACHE" : "CREATE", options)
   if (!getters) {
-    getters = gettersFromOptions({}, options, originalGetters)
-    gettersCache.set(originalGetters, getters)
+    getters = gettersFromOptions({}, options, originalGetters);
+    gettersCache.set(originalGetters, getters);
   }
-  return getters
+  return getters;
 }
 
 function gettersFromOptions(
@@ -110,17 +167,22 @@ function gettersFromOptions(
   hierarchy: string[] = []
 ): any {
   if (options.getters)
-    createDirectGetters(result, options.getters, originalGetters, hierarchy)
+    createDirectGetters(result, options.getters, originalGetters, hierarchy);
   if (options.modules) {
     for (const moduleName of Object.keys(options.modules)) {
-      const moduleOptions = options.modules[moduleName]
+      const moduleOptions = options.modules[moduleName];
       if (moduleOptions.namespaced)
-        result[moduleName] = gettersFromOptions({}, moduleOptions, originalGetters, [...hierarchy, moduleName])
+        result[moduleName] = gettersFromOptions(
+          {},
+          moduleOptions,
+          originalGetters,
+          [...hierarchy, moduleName]
+        );
       else
-        gettersFromOptions(result, moduleOptions, originalGetters, hierarchy)
+        gettersFromOptions(result, moduleOptions, originalGetters, hierarchy);
     }
   }
-  return result
+  return result;
 }
 
 function createDirectGetters(
@@ -129,41 +191,49 @@ function createDirectGetters(
   originalGetters: Store<any>["getters"],
   hierarchy?: string[]
 ) {
-  const prefix = !hierarchy || hierarchy.length === 0 ? "" : `${hierarchy.join("/")}/`
+  const prefix =
+    !hierarchy || hierarchy.length === 0 ? "" : `${hierarchy.join("/")}/`;
   for (const name of Object.keys(gettersImpl)) {
     Object.defineProperties(result, {
       [name]: {
         get: () => originalGetters[`${prefix}${name}`]
       }
-    })
+    });
   }
 }
 
 // Mutations
 
-const commitCache = new WeakMap<Store<any>["commit"], any>()
+const commitCache = new WeakMap<Store<any>["commit"], any>();
 
-function toDirectCommit(options: StoreOrModuleOptions, originalCommit: Store<any>["commit"]) {
-  let commit = commitCache.get(originalCommit)
+function toDirectCommit(
+  options: StoreOrModuleOptions,
+  originalCommit: Store<any>["commit"]
+) {
+  let commit = commitCache.get(originalCommit);
   // console.log(">> to-commit", commit ? "FROM_CACHE" : "CREATE", options)
   if (!commit) {
-    commit = commitFromOptions({}, options, originalCommit)
-    commitCache.set(originalCommit, commit)
+    commit = commitFromOptions({}, options, originalCommit);
+    commitCache.set(originalCommit, commit);
   }
-  return commit
+  return commit;
 }
 
-const rootCommitCache = new WeakMap<Store<any>["commit"], any>()
+const rootCommitCache = new WeakMap<Store<any>["commit"], any>();
 
-function toDirectRootCommit(rootOptions: StoreOptions, originalCommit: Store<any>["commit"]) {
-  let commit = rootCommitCache.get(originalCommit)
+function toDirectRootCommit(
+  rootOptions: StoreOptions,
+  originalCommit: Store<any>["commit"]
+) {
+  let commit = rootCommitCache.get(originalCommit);
   // console.log(">> to-rootCommit", commit ? "FROM_CACHE" : "CREATE", rootOptions)
   if (!commit) {
-    const origCall = (mutation: string, payload: any) => originalCommit(mutation, payload, { root: true })
-    commit = commitFromOptions({}, rootOptions, origCall)
-    rootCommitCache.set(originalCommit, commit)
+    const origCall = (mutation: string, payload: any) =>
+      originalCommit(mutation, payload, { root: true });
+    commit = commitFromOptions({}, rootOptions, origCall);
+    rootCommitCache.set(originalCommit, commit);
   }
-  return commit
+  return commit;
 }
 
 function commitFromOptions(
@@ -173,17 +243,27 @@ function commitFromOptions(
   hierarchy: string[] = []
 ): any {
   if (options.mutations)
-    createDirectMutations(result, options.mutations, originalCommitCall, hierarchy)
+    createDirectMutations(
+      result,
+      options.mutations,
+      originalCommitCall,
+      hierarchy
+    );
   if (options.modules) {
     for (const moduleName of Object.keys(options.modules)) {
-      const moduleOptions = options.modules[moduleName]
+      const moduleOptions = options.modules[moduleName];
       if (moduleOptions.namespaced)
-        result[moduleName] = commitFromOptions({}, moduleOptions, originalCommitCall, [...hierarchy, moduleName])
+        result[moduleName] = commitFromOptions(
+          {},
+          moduleOptions,
+          originalCommitCall,
+          [...hierarchy, moduleName]
+        );
       else
-        commitFromOptions(result, moduleOptions, originalCommitCall, hierarchy)
+        commitFromOptions(result, moduleOptions, originalCommitCall, hierarchy);
     }
   }
-  return result
+  return result;
 }
 
 function createDirectMutations(
@@ -192,36 +272,45 @@ function createDirectMutations(
   originalCommitCall: (mutation: string, payload: any) => void,
   hierarchy?: string[]
 ) {
-  const prefix = !hierarchy || hierarchy.length === 0 ? "" : `${hierarchy.join("/")}/`
+  const prefix =
+    !hierarchy || hierarchy.length === 0 ? "" : `${hierarchy.join("/")}/`;
   for (const name of Object.keys(mutationsImpl))
-    result[name] = (payload: any) => originalCommitCall(`${prefix}${name}`, payload)
+    result[name] = (payload: any) =>
+      originalCommitCall(`${prefix}${name}`, payload);
 }
 
 // Actions
 
-const dispatchCache = new WeakMap<Store<any>["dispatch"], any>()
+const dispatchCache = new WeakMap<Store<any>["dispatch"], any>();
 
-function toDirectDispatch(options: StoreOrModuleOptions, originalDispatch: Store<any>["dispatch"]) {
-  let dispatch = dispatchCache.get(originalDispatch)
+function toDirectDispatch(
+  options: StoreOrModuleOptions,
+  originalDispatch: Store<any>["dispatch"]
+) {
+  let dispatch = dispatchCache.get(originalDispatch);
   // console.log(">> to-dispatch", dispatch ? "FROM_CACHE" : "CREATE", options)
   if (!dispatch) {
-    dispatch = dispatchFromOptions({}, options, originalDispatch)
-    dispatchCache.set(originalDispatch, dispatch)
+    dispatch = dispatchFromOptions({}, options, originalDispatch);
+    dispatchCache.set(originalDispatch, dispatch);
   }
-  return dispatch
+  return dispatch;
 }
 
-const rootDispatchCache = new WeakMap<Store<any>["dispatch"], any>()
+const rootDispatchCache = new WeakMap<Store<any>["dispatch"], any>();
 
-function toDirectRootDispatch(rootOptions: StoreOptions, originalDispatch: Store<any>["dispatch"]) {
-  let dispatch = rootDispatchCache.get(originalDispatch)
+function toDirectRootDispatch(
+  rootOptions: StoreOptions,
+  originalDispatch: Store<any>["dispatch"]
+) {
+  let dispatch = rootDispatchCache.get(originalDispatch);
   // console.log(">> to-rootDispatch", dispatch ? "FROM_CACHE" : "CREATE", rootOptions)
   if (!dispatch) {
-    const origCall = (mutation: string, payload: any) => originalDispatch(mutation, payload, { root: true })
-    dispatch = dispatchFromOptions({}, rootOptions, origCall)
-    rootDispatchCache.set(originalDispatch, dispatch)
+    const origCall = (mutation: string, payload: any) =>
+      originalDispatch(mutation, payload, { root: true });
+    dispatch = dispatchFromOptions({}, rootOptions, origCall);
+    rootDispatchCache.set(originalDispatch, dispatch);
   }
-  return dispatch
+  return dispatch;
 }
 
 function dispatchFromOptions(
@@ -231,17 +320,32 @@ function dispatchFromOptions(
   hierarchy: string[] = []
 ): any {
   if (options.actions)
-    createDirectActions(result, options.actions, originalDispatchCall, hierarchy)
+    createDirectActions(
+      result,
+      options.actions,
+      originalDispatchCall,
+      hierarchy
+    );
   if (options.modules) {
     for (const moduleName of Object.keys(options.modules)) {
-      const moduleOptions = options.modules[moduleName]
+      const moduleOptions = options.modules[moduleName];
       if (moduleOptions.namespaced)
-        result[moduleName] = dispatchFromOptions({}, moduleOptions, originalDispatchCall, [...hierarchy, moduleName])
+        result[moduleName] = dispatchFromOptions(
+          {},
+          moduleOptions,
+          originalDispatchCall,
+          [...hierarchy, moduleName]
+        );
       else
-        dispatchFromOptions(result, moduleOptions, originalDispatchCall, hierarchy)
+        dispatchFromOptions(
+          result,
+          moduleOptions,
+          originalDispatchCall,
+          hierarchy
+        );
     }
   }
-  return result
+  return result;
 }
 
 function createDirectActions(
@@ -250,109 +354,117 @@ function createDirectActions(
   originalDispatchCall: (action: string, payload: any) => any,
   hierarchy?: string[]
 ) {
-  const prefix = !hierarchy || hierarchy.length === 0 ? "" : `${hierarchy.join("/")}/`
+  const prefix =
+    !hierarchy || hierarchy.length === 0 ? "" : `${hierarchy.join("/")}/`;
   for (const name of Object.keys(actionsImpl))
-    result[name] = (payload?: any) => originalDispatchCall(`${prefix}${name}`, payload)
+    result[name] = (payload?: any) =>
+      originalDispatchCall(`${prefix}${name}`, payload);
 }
 
 // GetterContext
 
-const getterContextCache = new WeakMap<any, any>()
+const getterContextCache = new WeakMap<any, any>();
 
-function getModuleGetterContext(args: [any, any, any, any], options: ModuleOptions, rootOptions?: StoreOptions) {
-  const [state, getters, rootState, rootGetters] = args
-  let context = actionContextCache.get(state)
+function getModuleGetterContext(
+  args: [any, any, any, any],
+  options: ModuleOptions,
+  rootOptions?: StoreOptions
+) {
+  const [state, getters, rootState, rootGetters] = args;
+  let context = actionContextCache.get(state);
   // console.log(">> to-getterContext", context ? "FROM_CACHE" : "CREATE", options)
   if (!context) {
     if (rootOptions) {
       context = {
         get rootState() {
-          return rootState
+          return rootState;
         },
         get rootGetters() {
-          return toDirectGetters(rootOptions!, rootGetters)
+          return toDirectGetters(rootOptions!, rootGetters);
         },
         get state() {
-          return state
+          return state;
         },
         get getters() {
-          return toDirectGetters(options, getters)
+          return toDirectGetters(options, getters);
         }
-      }
+      };
     } else {
       context = {
         get state() {
-          return state
+          return state;
         },
         get getters() {
-          return toDirectGetters(options, getters)
+          return toDirectGetters(options, getters);
         }
-      }
+      };
     }
-    if (state) // Can be undefined in unit tests
-      getterContextCache.set(state, context)
+    if (state)
+      // Can be undefined in unit tests
+      getterContextCache.set(state, context);
   }
 
-  return context
+  return context;
 }
 
 // ActionContext
 
-const actionContextCache = new WeakMap<any, any>()
+const actionContextCache = new WeakMap<any, any>();
 
 function getModuleActionContext(
   originalContext: ActionContext<any, any>,
   options: ModuleOptions,
   rootOptions?: StoreOptions
 ): any {
-  let context = actionContextCache.get(originalContext.state)
+  let context = actionContextCache.get(originalContext.state);
   // console.log(">> to-actionContext", context ? "FROM_CACHE" : "CREATE", options)
   if (!context) {
     if (rootOptions) {
       context = {
         get rootState() {
-          return originalContext.rootState
+          return originalContext.rootState;
         },
         get rootGetters() {
-          return toDirectGetters(rootOptions!, originalContext.rootGetters)
+          return toDirectGetters(rootOptions!, originalContext.rootGetters);
         },
         get rootCommit() {
-          return toDirectRootCommit(rootOptions!, originalContext.commit)
+          return toDirectRootCommit(rootOptions!, originalContext.commit);
         },
         get rootDispatch() {
-          return toDirectRootDispatch(rootOptions!, originalContext.dispatch)
+          return toDirectRootDispatch(rootOptions!, originalContext.dispatch);
         },
         get state() {
-          return originalContext.state
+          return originalContext.state;
         },
         get getters() {
-          return toDirectGetters(options, originalContext.getters)
+          return toDirectGetters(options, originalContext.getters);
         },
         get commit() {
-          return toDirectCommit(options, originalContext.commit)
+          return toDirectCommit(options, originalContext.commit);
         },
         get dispatch() {
-          return toDirectDispatch(options, originalContext.dispatch)
+          return toDirectDispatch(options, originalContext.dispatch);
         }
-      }
+      };
     } else {
       context = {
         get state() {
-          return originalContext.state
+          return originalContext.state;
         },
         get getters() {
-          return toDirectGetters(options, originalContext.getters)
+          return toDirectGetters(options, originalContext.getters);
         },
         get commit() {
-          return toDirectCommit(options, originalContext.commit)
+          return toDirectCommit(options, originalContext.commit);
         },
         get dispatch() {
-          return toDirectDispatch(options, originalContext.dispatch)
+          return toDirectDispatch(options, originalContext.dispatch);
         }
-      }
+      };
     }
-    if (originalContext.state) // Can be undefined in unit tests
-      actionContextCache.set(originalContext.state, context)
+    if (originalContext.state)
+      // Can be undefined in unit tests
+      actionContextCache.set(originalContext.state, context);
   }
-  return context
+  return context;
 }
